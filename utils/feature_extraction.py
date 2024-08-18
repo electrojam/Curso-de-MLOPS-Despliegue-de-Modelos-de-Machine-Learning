@@ -7,9 +7,7 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import NMF
-
 warnings.filterwarnings("ignore")
-
 
 class FeatureExtraction:
     def __init__(self) -> None:
@@ -76,7 +74,7 @@ class FeatureExtraction:
             2: "Mortgage/Loan",
         }
         df["relevant_topics"] = df["relevant_topics"].map(self.dict_mapping)
-        return df, self.dict_mapping
+        return  self.dict_mapping# df, self.dict_mapping
 
     def save_topic_mapping_to_json(self, dictionary: dict, path: str, file_name: str):
         """This method saves the dictionary to a JSON file"""
@@ -85,23 +83,34 @@ class FeatureExtraction:
             json.dump(dictionary, file, ensure_ascii=False)
         self.logger.info(f"Dictionary successfully saved to {file_path}")
 
+    def save_df_to_csv(self, df: pd.DataFrame, path: str, file_name: str):
+        """This method saves the dataframe to a CSV file"""
+        file_path = os.path.join(path, file_name)
+        df.to_csv(file_path, index=False)
+        self.logger.info(f"Dataframe successfully saved to {file_path}")
 
+
+    def run(self, data_path_processed: str, data_version: int): 
+        df_tickets = self.read_csv(
+            path=data_path_processed,
+            file_name=f"tickets_classification_eng_{data_version}.csv",
+        )
+        self.fit(df_tickets)
+        extracted_topics = self.topic_modeling_nmf(n_components=4)
+        for idx, topic in enumerate(extracted_topics):
+            print(f"Topic {idx}: {topic}")
+        df_tickets = self.create_topics()
+        topic_mapping = self.topic_mapping(df_tickets)
+        self.save_topic_mapping_to_json(
+            dictionary=topic_mapping,
+            path=data_path_processed,
+            file_name=f"topic_mapping_{data_version}.json",
+        )
+        self.save_df_to_csv(df_tickets, data_path_processed, f"tickets_inputs_eng_{data_version}.csv")
+
+# TODO: ejecutar run en clase de orquestación
 if __name__ == "__main__":
     feature_extractor_processor = FeatureExtraction()
     data_path_processed = "tracking/data/data_processed"
     data_version = 1
-    df_tickets = feature_extractor_processor.read_csv(
-        path=data_path_processed,
-        file_name=f"tickets_classification_eng_{data_version}.csv",
-    )
-    feature_extractor_processor.fit(df_tickets)
-    extracted_topics = feature_extractor_processor.topic_modeling_nmf(n_components=4)
-    for idx, topic in enumerate(extracted_topics):
-        print(f"Topic {idx}: {topic}")
-    df_tickets = feature_extractor_processor.create_topics()
-    df_tickets, topic_mapping = feature_extractor_processor.topic_mapping(df_tickets)
-    feature_extractor_processor.save_topic_mapping_to_json(
-        dictionary=topic_mapping,
-        path=data_path_processed,
-        file_name=f"topic_mapping_{data_version}.json",
-    )
+    feature_extractor_processor.run(data_path_processed, data_version)
