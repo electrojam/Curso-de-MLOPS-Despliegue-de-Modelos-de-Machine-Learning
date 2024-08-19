@@ -6,22 +6,21 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 @task(
-    name = "Load Iris Dataset",
-    tags = ["data_loading"],
-    description = "Load Iris dataset from sklearn"
+    name="Load Iris Dataset",
+    tags=["data_loading"],
+    description="Load Iris dataset from sklearn",
 )
-
 def get_data_from_sklearn() -> dict:
-    """This function loas the iris dataset from sklearn"""
+    """This function loads the iris dataset from sklearn and returns it as a dictionary."""
     data = load_iris()
     return {"data": data.data, "target": data.target}
+
 
 @task(
     name="Split Data",
     tags=["data_processing"],
     description="Split dataset into train and test sets",
 )
-
 def split_data(dataset: dict) -> tuple:
     """This function splits the dataset into train and test sets."""
     X_train, X_test, y_train, y_test = train_test_split(
@@ -29,12 +28,12 @@ def split_data(dataset: dict) -> tuple:
     )
     return X_train, X_test, y_train, y_test
 
+
 @task(
     name="Train Model",
     tags=["model_training"],
     description="Train RandomForestClassifier model",
 )
-
 def train_model(X_train: list, X_test: list, y_train: list, y_test: list) -> str:
     """This function trains a RandomForestClassifier model and returns the accuracy."""
     model = RandomForestClassifier(random_state=42)
@@ -50,5 +49,6 @@ def iris_classification():
     dataset = get_data_from_sklearn()
     X_train, X_test, y_train, y_test = split_data(dataset)
     train_model(X_train, X_test, y_train, y_test)
+
 
 iris_classification()
